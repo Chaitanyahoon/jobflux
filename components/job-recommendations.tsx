@@ -239,6 +239,8 @@ export function JobRecommendations({ initialJobs }: JobRecommendationsProps) {
   )
 }
 
+import { applyForJob } from "@/lib/actions"
+
 function JobCard({
   job,
   onToggleSaved,
@@ -246,6 +248,29 @@ function JobCard({
   job: (typeof jobListings)[0]
   onToggleSaved: (id: number) => void
 }) {
+  const [isApplying, setIsApplying] = useState(false)
+  const { toast } = useToast()
+
+  const handleApply = async () => {
+    setIsApplying(true)
+    try {
+      const result = await applyForJob(String(job.id))
+      toast({
+        title: result.success ? "Application Sent" : "Application Failed",
+        description: result.message,
+        variant: result.success ? "default" : "destructive"
+      })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive"
+      })
+    } finally {
+      setIsApplying(false)
+    }
+  }
+
   return (
     <Card className="overflow-hidden card-neumorphic">
       <CardContent className="p-0">
@@ -256,7 +281,7 @@ function JobCard({
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8 rounded-full"
-                onClick={() => onToggleSaved(job.id)}
+                onClick={() => onToggleSaved(Number(job.id))}
               >
                 {job.saved ? <Heart className="h-5 w-5 fill-primary text-primary" /> : <Heart className="h-5 w-5" />}
                 <span className="sr-only">{job.saved ? "Unsave job" : "Save job"}</span>
@@ -313,12 +338,19 @@ function JobCard({
           <Star className="mr-1 inline-block h-3.5 w-3.5" />
           <span>Matched based on your profile • Via {job.source}</span>
         </div>
-        <a href={job.applyUrl} target="_blank" rel="noopener noreferrer">
-          <Button size="sm" className="button-glow">
-            <ExternalLink className="mr-1 h-3.5 w-3.5" />
-            Apply Now
+
+        {job.source === "JobFlux" ? (
+          <Button size="sm" className="button-glow" onClick={handleApply} disabled={isApplying}>
+            {isApplying ? "Applying..." : "Easy Apply"}
           </Button>
-        </a>
+        ) : (
+          <a href={job.applyUrl} target="_blank" rel="noopener noreferrer">
+            <Button size="sm" className="button-glow">
+              <ExternalLink className="mr-1 h-3.5 w-3.5" />
+              Apply Now
+            </Button>
+          </a>
+        )}
       </CardFooter>
     </Card>
   )

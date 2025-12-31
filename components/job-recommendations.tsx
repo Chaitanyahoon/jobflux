@@ -90,8 +90,26 @@ const jobListings = [
   },
 ]
 
-export function JobRecommendations() {
-  const [jobs, setJobs] = useState(jobListings)
+interface JobRecommendationsProps {
+  initialJobs?: any[]
+}
+
+export function JobRecommendations({ initialJobs }: JobRecommendationsProps) {
+  const [jobs, setJobs] = useState(initialJobs ? initialJobs.map(job => ({
+    id: job.id, // String vs Number mismatch handling needed if not fixed
+    title: job.title,
+    company: job.company,
+    logo: "TC", // Mock
+    location: job.location,
+    remote: job.location.toLowerCase().includes("remote"),
+    salary: job.salary || "Not specified",
+    posted: new Date(job.postedAt).toLocaleDateString(),
+    match: 85, // Mock
+    skills: ["React", "TypeScript"], // Mock
+    saved: false,
+    source: "JobFlux",
+    applyUrl: "#"
+  })) : jobListings)
   const { toast } = useToast()
 
   const toggleSaved = (id: number) => {

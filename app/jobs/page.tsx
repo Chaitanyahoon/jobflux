@@ -2,7 +2,10 @@ import { JobsFilter } from "@/components/jobs-filter"
 import { JobRecommendations } from "@/components/job-recommendations"
 import { AppLayout } from "@/components/app-layout"
 
-export default function JobsPage() {
+import { getJobs } from "@/lib/data"
+
+export default async function JobsPage() {
+  const jobs = await getJobs()
   return (
     <AppLayout>
       <div className="py-6">
@@ -15,7 +18,7 @@ export default function JobsPage() {
               <JobsFilter />
             </aside>
             <div>
-              <JobRecommendations />
+              <JobRecommendations initialJobs={jobs} />
             </div>
           </div>
         </div>

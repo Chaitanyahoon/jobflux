@@ -140,9 +140,39 @@ const userProfile = {
   resume: null,
 }
 
-export function ProfileView() {
+interface ProfileViewProps {
+  initialData?: any // Replace with proper type later
+  user?: any
+}
+
+export function ProfileView({ initialData, user }: ProfileViewProps) {
   // User profile state
-  const [profile, setProfile] = useState({
+  const [profile, setProfile] = useState(initialData ? {
+    name: user?.name || initialData.user?.name || "",
+    title: initialData.headline || "",
+    location: initialData.location || "",
+    about: initialData.bio || "",
+    profileImage: user?.image || initialData.user?.image || "/placeholder.svg?height=100&width=100",
+    bannerImage: "/placeholder.svg?height=300&width=1000",
+    resume: null as File | null,
+    skills: initialData.skills?.map((s: { name: string }) => s.name) || [],
+    experience: initialData.experience?.map((e: any) => ({
+      id: e.id,
+      company: e.company,
+      position: e.title,
+      duration: `${new Date(e.startDate).getFullYear()} - ${e.endDate ? new Date(e.endDate).getFullYear() : 'Present'}`,
+      description: e.description
+    })) || [],
+    education: initialData.education?.map((e: any) => ({
+      id: e.id,
+      institution: e.school,
+      degree: e.degree,
+      duration: `${new Date(e.startDate).getFullYear()} - ${e.endDate ? new Date(e.endDate).getFullYear() : 'Present'}`,
+      description: e.description
+    })) || [],
+    languages: [], // Not in schema yet
+    certifications: [], // Not in schema yet
+  } : {
     name: "Chaitanya",
     title: "Senior Frontend Developer",
     location: "San Francisco, CA",
@@ -150,7 +180,7 @@ export function ProfileView() {
       "Passionate frontend developer with 2+ years of experience in building responsive web applications using React, Next.js, and TypeScript. Strong focus on user experience and performance optimization.",
     profileImage: "/placeholder.svg?height=100&width=100",
     bannerImage: "/placeholder.svg?height=300&width=1000",
-    resume: null,
+    resume: null as File | null,
     skills: ["React", "TypeScript", "Next.js", "Tailwind CSS", "Node.js"],
     experience: [
       {
@@ -178,7 +208,7 @@ export function ProfileView() {
         duration: "2021 - 2025",
         description: "Specialized in Human-Computer Interaction and Web Technologies.",
       },
-    
+
     ],
     languages: [
       { id: 1, language: "English", proficiency: "Proffesional" },
@@ -494,7 +524,7 @@ export function ProfileView() {
   const removeSkill = (skillToRemove: string) => {
     setProfile({
       ...profile,
-      skills: profile.skills.filter((skill) => skill !== skillToRemove),
+      skills: profile.skills.filter((skill: string) => skill !== skillToRemove),
     })
   }
 
@@ -502,7 +532,7 @@ export function ProfileView() {
   const addExperience = () => {
     const { company, position, duration, description } = newExperience
     if (company && position && duration) {
-      const newId = profile.experience.length > 0 ? Math.max(...profile.experience.map((exp) => exp.id)) + 1 : 1
+      const newId = profile.experience.length > 0 ? Math.max(...profile.experience.map((exp: any) => exp.id)) + 1 : 1
 
       setProfile({
         ...profile,
@@ -520,7 +550,7 @@ export function ProfileView() {
     if (company && position && duration) {
       setProfile({
         ...profile,
-        experience: profile.experience.map((exp) =>
+        experience: profile.experience.map((exp: any) =>
           exp.id === id ? { ...exp, company, position, duration, description } : exp,
         ),
       })
@@ -534,7 +564,7 @@ export function ProfileView() {
   const deleteExperience = (id: number) => {
     setProfile({
       ...profile,
-      experience: profile.experience.filter((exp) => exp.id !== id),
+      experience: profile.experience.filter((exp: any) => exp.id !== id),
     })
   }
 
@@ -553,7 +583,7 @@ export function ProfileView() {
   const addEducation = () => {
     const { institution, degree, duration, description } = newEducation
     if (institution && degree && duration) {
-      const newId = profile.education.length > 0 ? Math.max(...profile.education.map((edu) => edu.id)) + 1 : 1
+      const newId = profile.education.length > 0 ? Math.max(...profile.education.map((edu: any) => edu.id)) + 1 : 1
 
       setProfile({
         ...profile,
@@ -571,7 +601,7 @@ export function ProfileView() {
     if (institution && degree && duration) {
       setProfile({
         ...profile,
-        education: profile.education.map((edu) =>
+        education: profile.education.map((edu: any) =>
           edu.id === id ? { ...edu, institution, degree, duration, description } : edu,
         ),
       })
@@ -585,7 +615,7 @@ export function ProfileView() {
   const deleteEducation = (id: number) => {
     setProfile({
       ...profile,
-      education: profile.education.filter((edu) => edu.id !== id),
+      education: profile.education.filter((edu: any) => edu.id !== id),
     })
   }
 
@@ -1179,7 +1209,7 @@ export function ProfileView() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">
-            {profile.skills.map((skill, index) => (
+            {profile.skills.map((skill: string, index) => (
               <Badge key={index} variant="secondary" className="accent-glow">
                 {skill}
                 {isEditingSkills && (
@@ -1242,7 +1272,7 @@ export function ProfileView() {
               </Button>
             </CardHeader>
             <CardContent className="space-y-6">
-              {profile.experience.map((exp) => (
+              {editedProfile.experience.map((exp: any) => (
                 <div key={exp.id} className="border-b border-border pb-4 last:border-0 last:pb-0">
                   {isEditingExperience === exp.id ? (
                     <div className="space-y-4">
@@ -1375,7 +1405,7 @@ export function ProfileView() {
               </Button>
             </CardHeader>
             <CardContent className="space-y-6">
-              {profile.education.map((edu) => (
+              {editedProfile.education.map((edu: any) => (
                 <div key={edu.id} className="border-b border-border pb-4 last:border-0 last:pb-0">
                   {isEditingEducation === edu.id ? (
                     <div className="space-y-4">

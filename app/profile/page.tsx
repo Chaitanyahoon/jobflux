@@ -3,8 +3,21 @@ import { AppLayout } from "@/components/app-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
+import { getProfile } from "@/lib/data"
+import { redirect } from "next/navigation"
 
-export default function ProfilePage() {
+export default async function ProfilePage() {
+
+  const session = await getServerSession(authOptions)
+
+  if (!session?.user) {
+    redirect("/login")
+  }
+
+  const profile = await getProfile(session.user.id)
+
   return (
     <AppLayout>
       <div className="py-6">
@@ -18,6 +31,7 @@ export default function ProfilePage() {
                     <CardDescription>Complete your profile to increase your chances of getting hired</CardDescription>
                   </div>
                   <Badge variant="outline" className="px-3 py-1">
+                    {/* Calculate completion based on real data if possible, or keep mock for now */}
                     83% Complete
                   </Badge>
                 </div>
@@ -30,7 +44,7 @@ export default function ProfilePage() {
               </CardContent>
             </Card>
           </div>
-          <ProfileView />
+          <ProfileView initialData={profile || undefined} user={session.user} />
         </div>
       </div>
     </AppLayout>

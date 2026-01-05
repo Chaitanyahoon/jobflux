@@ -1,12 +1,11 @@
 "use server"
 
 import { prisma } from "@/lib/prisma"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
+import { auth } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
 
 export async function applyForJob(jobId: string) {
-    const session = await getServerSession(authOptions)
+    const session = await auth()
 
     if (!session?.user?.email) {
         throw new Error("You must be logged in to apply.")

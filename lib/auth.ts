@@ -1,76 +1,33 @@
-import { NextAuthOptions } from "next-auth"
-import CredentialsProvider from "next-auth/providers/credentials"
+import NextAuth from "next-auth"
+import { authConfig } from "@/auth.config"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "@/lib/prisma"
+import Credentials from "next-auth/providers/credentials"
 import { compare } from "bcryptjs"
-import type { Adapter } from "next-auth/adapters"
+import { z } from "zod"
 
-export const authOptions: NextAuthOptions = {
-    adapter: PrismaAdapter(prisma) as Adapter,
-    session: {
-        strategy: "jwt",
-    },
-    pages: {
-        signIn: "/login",
-    },
+export const { handlers, auth, signIn, signOut } = NextAuth({
+    ...authConfig,
+    adapter: PrismaAdapter(prisma),
     providers: [
-        CredentialsProvider({
-            name: "Credentials",
-            credentials: {
-                email: { label: "Email", type: "email" },
-                password: { label: "Password", type: "password" }
-            },
+        Credentials({
             async authorize(credentials) {
-                if (!credentials?.email || !credentials?.password) {
-                    return null
+                const parsedCredentials = z
+                    .object({ email: z.string().email(), password: z.string().min(6) })
+                    .safeParse(credentials)
+
+                if (parsedCredentials.success) {
+                    const { email, password } = parsedCredentials.data
+                    const user = await prisma.user.findUnique({ where: { email } })
+
+                    if (!user || !user.password) return null
+
+                    const passwordsMatch = await compare(password, user.password)
+                    if (passwordsMatch) return user
                 }
 
-                const user = await prisma.user.findUnique({
-                    where: {
-                        email: credentials.email
-                    }
-                })
-
-                if (!user || !user.password) {
-                    return null
-                }
-
-                const isPasswordValid = await compare(
-                    credentials.password,
-                    user.password
-                )
-
-                if (!isPasswordValid) {
-                    return null
-                }
-
-                return {
-                    id: user.id,
-                    email: user.email,
-                    name: user.name,
-                    image: user.image,
-                }
-            }
-        })
+                return null
+            },
+        }),
     ],
-    callbacks: {
-        session: ({ session, token }) => {
-            return {
-                ...session,
-                user: {
-                    ...session.user,
-                    id: token.id,
-                },
-            }
-        },
-        jwt: ({ token, user }) => {
-            if (user) {
-                return {
-                    ...token,
-                    id: user.id,
-                }
-            }
-            return token
-        },
-    },
-}
+})

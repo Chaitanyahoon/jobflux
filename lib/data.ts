@@ -1,10 +1,9 @@
 ﻿import { prisma } from "@/lib/prisma"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
+import { auth } from "@/lib/auth"
 import { generateEmbedding, computeSimilarity } from "@/lib/ai"
 
 export async function getCurrentUser() {
-    const session = await getServerSession(authOptions)
+    const session = await auth()
     return session?.user
 }
 
